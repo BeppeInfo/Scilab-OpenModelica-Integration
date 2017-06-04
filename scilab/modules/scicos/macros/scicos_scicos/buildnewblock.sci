@@ -99,14 +99,14 @@ function [ok]=buildnewblock(blknam, files, filestan, filesint, libs, rpat, ldfla
         message(["sorry compiling problem"; lasterror()]);
         return;
     end
-
+    
     //** unlink if necessary
     [a, b] = c_link(blknam);
     while a
         ulink(b);
         [a, b] = c_link(blknam);
     end
-
+    
     //** save path in case of error in ilib_compile
     oldpath = pwd();
 

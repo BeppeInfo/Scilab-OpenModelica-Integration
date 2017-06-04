@@ -1,0 +1,77 @@
+/* @configure_input@ */
+#define CONFIGURE_COMMANDLINE "Configured @date@ using arguments: '@CONFIGURE_ARGS@'"
+#define LDFLAGS_RT "@RT_LDFLAGS_GENERATED_CODE@"
+#define LDFLAGS_RT_SIM "@RT_LDFLAGS_GENERATED_CODE_SIM@"
+#define LDFLAGS_RT_SOURCE_FMU "@RT_LDFLAGS_GENERATED_CODE_SOURCE_FMU@"
+#define CONFIG_EXE_EXT ""
+#define CONFIG_DLL_EXT "@SHREXT@"
+#define CONFIG_PLATFORM "Unix"
+#define CONFIG_MODELICA_SPEC_PLATFORM "@MODELICA_SPEC_PLATFORM@"
+#define CONFIG_OPENMODELICA_SPEC_PLATFORM "@OPENMODELICA_SPEC_PLATFORM@"
+
+#define DEFAULT_CC "@RUNTIMECC@"
+#define DEFAULT_CXX "@CXX@"
+#define DEFAULT_OMPCC "@CC@ @OMPCFLAGS@"
+#define DEFAULT_MAKE "@MAKE@"
+#define DEFAULT_TRIPLE "@host_short@"
+
+#if defined(__sparc__)
+  #define DEFAULT_LINKER "@RUNTIMECC@ -G"
+#elif defined(__APPLE_CC__)
+  #define DEFAULT_LINKER "@RUNTIMECC@ -single_module -dynamiclib -flat_namespace"
+#elif defined(__x86_64__)
+  /* -fPIC needed on x86_64! */
+  #define DEFAULT_LINKER "@RUNTIMECC@ -shared"
+#else
+  #define DEFAULT_LINKER "@RUNTIMECC@ -shared"
+#endif
+
+#define DEFAULT_CFLAGS "@RUNTIMECFLAGS@ ${MODELICAUSERCFLAGS}"
+#define CONFIG_OS "@CONFIG_OS@"
+
+#define CONFIG_LPSOLVEINC "@LPSOLVEINC@"
+@NO_LPLIB@
+@NO_LAPACK@
+@NO_FMIL@
+
+#define CONFIG_DEFAULT_OPENMODELICAHOME "@prefix@"
+#define CONFIG_PATH_DELIMITER "/"
+#define CONFIG_GROUP_DELIMITER ":"
+#define CONFIG_CORBALIBS "@CORBALIBS@"
+#define CONFIG_LPSOLVE55 "@LIBLPSOLVE55@"
+#define CONFIG_REVISION "@SOURCE_REVISION@"
+#define CONFIG_WITH_OPENMP @CONFIG_WITH_OPENMP@
+
+/* Skip compiling against some stuff for the JavaScript runtime */
+#if !defined(OMC_EMCC) && !defined(OMC_MINIMAL_RUNTIME)
+#define WITH_SUNDIALS
+#define WITH_IPOPT
+@WITH_UMFPACK@
+@WITH_HWLOC@
+@WITH_UUID@
+#endif
+#if !defined(OMC_MINIMAL_RUNTIME)
+#define WITH_DASSL
+#endif
+
+#ifdef WITH_HWLOC
+#define CONFIG_SYSTEMLIBS_HWLOC  mmc_mk_cons(mmc_mk_scon("-lhwloc"), mmc_mk_nil())
+#else
+#define CONFIG_SYSTEMLIBS_HWLOC  mmc_mk_nil()
+#endif
+
+#define CONFIG_SYSTEMLIBS mmc_mk_cons(mmc_mk_scon("-lomcruntime"), \
+  mmc_mk_cons(mmc_mk_scon("-lexpat"), \
+  mmc_mk_cons(mmc_mk_scon("-lsqlite3"), \
+  mmc_mk_cons(mmc_mk_scon(CONFIG_LPSOLVE55), \
+  mmc_mk_cons(mmc_mk_scon(CONFIG_CORBALIBS), \
+  mmc_mk_cons(mmc_mk_scon("-lomcgc"), \
+  CONFIG_SYSTEMLIBS_HWLOC \
+  ))))))
+
+#define USE_GRAPH @USE_GRAPH@
+#if USE_GRAPH
+#define USE_PATOH @USE_PATOH@
+#define USE_METIS @USE_METIS@
+#endif
+@HAVE_GETTEXT@

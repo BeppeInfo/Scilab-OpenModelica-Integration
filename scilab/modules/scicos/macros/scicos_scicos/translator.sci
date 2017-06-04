@@ -18,29 +18,24 @@
 //
 // See the file ../license.txt
 //
-function [ok]=translator(filemo,Mblocks,_Modelica_libs,Flat)
+function [ok]=translator(filemo,Mblocks,model_flat_file)
     //Generate the flat model of the Modelica model given in the filemo file
     //and the Modelica libraries. Interface to the external tool
     //translator.
     // if <name> is the basename of filemo this function produces
     // - the flat Modelica model file in outpath+name+'f.mo'
-    // - the flat xml representation file in  outpath+name+'f_init.xml'
-    // - the flat xml  file in  outpath+name+'f_relations.xml'
 
     // TO DO : rename filename too generic
-    TRANSLATOR_FILENAME = "modelicat";
+    TRANSLATOR_FILENAME = "omc";
     if getos() == "Windows" then
         TRANSLATOR_FILENAME = TRANSLATOR_FILENAME + ".exe";
     end
 
-    mlibs = pathconvert(_Modelica_libs,%f,%t);
-    filemo = pathconvert(filemo,%f,%t);
-    Flat = pathconvert(Flat,%f,%t);
-
-    name = basename(filemo);
-    namef = name + "f";
-
     [modelica_libs,modelica_directory] = getModelicaPath();
+
+    mlibs = pathconvert(modelica_libs,%f,%t);
+    filemo = pathconvert(filemo,%f,%t);
+    model_flat_file = pathconvert(model_flat_file,%f,%t);
 
     molibs = [];
 
@@ -58,11 +53,12 @@ function [ok]=translator(filemo,Mblocks,_Modelica_libs,Flat)
     for k = 1:size(mlibs,"*")
         modelica_directories = mlibs(k);
         if modelica_directories<> [] then
-            molibs = [molibs; """" + modelica_directories + """"];
+            [dirF, nameF] = fileparts(modelica_directories);
+            molibs = [molibs; """" + modelica_directories + filesep() + nameF + ".mo"""];
         end
     end
 
-    translator_libs = strcat(" -lib "+ molibs);
+    translator_libs = strcat(" "+ molibs);
 
     // build the sequence of -lib arguments for translator
     if getos() == "Windows" then, Limit=1000;else, Limit=3500;end
@@ -81,32 +77,33 @@ function [ok]=translator(filemo,Mblocks,_Modelica_libs,Flat)
             end
         end
         mputl(txt, mymopac);
-        translator_libs= " -lib """+mymopac+"""";
+        translator_libs= " """+mymopac+"""";
     end
-    translator_libs = translator_libs + "  -lib """ + filemo + """"
+
+    translator_libs = " """ + filemo + """ " + translator_libs;
 
     //Build the shell instruction for calling the translator
 
-    exe = getmodelicacpath() + TRANSLATOR_FILENAME
-    exe = """" + pathconvert(getmodelicacpath() + TRANSLATOR_FILENAME,%f,%t) + """ ";
+    exe = getomcpath() + TRANSLATOR_FILENAME
+    exe = """" + pathconvert(getomcpath() + TRANSLATOR_FILENAME,%f,%t) + """ ";
 
-    out =" -o """+Flat+"""" //flat modelica
-    Errfile = outpath + "S_translator.err""";
+    out = " """ + model_flat_file + """ " //flat modelica
 
-    // with the with-init option
-    instr = exe + translator_libs + out + " -with-init -command """ + name + " " + namef + ";"" >""" + Errfile
+    // Shell instruction for generating flat Modelica code and saving it to a file
+    instr = exe + " " + translator_libs + " --modelicaOutput --useLocalDirection --reduceTerms > " + out;
 
-    if getos() == "Windows" then
-        mputl(instr,outpath+"/gent.bat")
-        instr = outpath + "/gent.bat";
+//    if getos() == "Windows" then
+//        mputl(instr,outpath+"/gent.bat")
+//        instr = outpath + "/gent.bat";
+//    end
+
+    [rep,stat,err]=unix_g(instr);
+    if stat <> 0 then
+        messagebox(err, _("Modelica translator"), "error", "modal");
+        ok=%f;
+        return
     end
 
-    if execstr("unix_s(instr)","errcatch") <> 0 then
-        messagebox([_("-------Modelica translator error message:-----");
-        mgetl(outpath + "S_translator.err")], "error", "modal");
-        ok = %f,
-    else
-        ok = %t
-    end
+    ok = %t
+
 endfunction
-

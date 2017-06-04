@@ -20,56 +20,43 @@
 // See the file ../license.txt
 //
 // -----------------------------------------------------------------------------
-function ok = Link_modelica_C(Cfile)
-    mlibs = pathconvert(modelica_libs, %t, %t);
-    Cfile = pathconvert(Cfile, %f, %t)
-    name = basename(Cfile);
-    path = fileparts(Cfile, "path");
+function ok = Link_modelica_C(model_C_file)
+    model_C_file = pathconvert(model_C_file, %f, %t);
+    [model_path, model_name, ext] = fileparts(model_C_file);
 
-    //  build the list of external functions libraries
-    // remove repreated directories from mlibs
-    rep = [];
-    for k = 1:size(mlibs, "*")
-        for j = k + 1:size(mlibs, "*")
-            if stripblanks(mlibs(k)) == stripblanks(mlibs(j)) then
-                rep = [rep, j];
-            end
-        end
+    [version, opts] = getversion();
+    compiler = opts(1);
+    if opts(2) == "x64" then
+        arch = "64";
+    else
+        arch = "32";
     end
-    mlibs(rep) = [];
 
-    // add dynamic libraries in same directory that .mo
-    // compatibility feature with 4.x.x
-    libs = [];
-    ext = getdynlibext();
-    for k = 1:size(mlibs, "*")
-        fileSearched = findfiles(mlibs(k), "*" + ext);
-        for j = 1:size(fileSearched, "*")
-            [pathx, fnamex, extensionx] = fileparts(fileSearched(j));
-            libsname = fullfile(pathx, fnamex);
-            if getos() == "Windows" then
-                libsname = strsubst(libsname, "\", "/");
-            end
-            libs = [libs; libsname];
-        end
+    model_libs_path = strsubst(model_path, "\", "/") + model_name + "/binaries/";
+    if getos() == "Windows" then
+        model_libs_path = model_libs_path + "win" + arch + "/";
+    else
+        model_libs_path = model_libs_path + "linux" + arch + "/";
     end
+
+    model_include_path = strsubst(model_path, "\", "/") + model_name + "/sources/include/fmi2/";
+
+    // add linked libraries list
+    model_libs = [ model_libs_path + model_name + getdynlibext() ];
 
     // add modelica_libs to the list of directories to be searched for *.h
-    IncludePaths = "";
-    extToSearch = ".h";
-
-    for k = 1:size(mlibs, "*")
-        pathSearch = mlibs(k);
-        pathSearch = strsubst(pathSearch, "\", "/");
-        filesFounded = findfiles(pathSearch, "*" + ext);
-        if filesFounded <> [] then
-            IncludePaths = IncludePaths + "  -I""" + pathSearch + """";
-        end
+    ldflags = "";
+    cflags = "";
+    files_found = findfiles(model_include_path, "*.h");
+    if files_found <> [] then
+        cflags = " -I" + model_include_path;
     end
 
-    //** build shared library with the C code
-    files = name;
-    ok = buildnewblock(name, files, "", "", libs, TMPDIR, "", IncludePaths);
+    old_linked_libs = link();
+    ulink(old_linked_libs);
+
+    // build shared library with the C code
+    ok = buildnewblock(model_name, model_name, "", "", model_libs, TMPDIR, ldflags, cflags);
 
 endfunction
 // -----------------------------------------------------------------------------

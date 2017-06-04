@@ -36,7 +36,7 @@ DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.incl.am \
 	$(srcdir)/Makefile.incl.in $(top_srcdir)/configure \
 	$(top_srcdir)/libs/f2c/Makefile.in \
 	$(top_srcdir)/modules/core/includes/machine.h.in \
-	$(top_srcdir)/modules/scicos/src/ocaml/Makefile.in \
+	$(top_srcdir)/modules/scicos/src/modelica_compiler/Makefile.in \
 	config/README config/config.guess config/config.sub \
 	config/depcomp config/install-sh config/ltmain.sh \
 	config/missing
@@ -54,7 +54,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/modules/core/includes/machine.h
 CONFIG_CLEAN_FILES = libs/f2c/Makefile \
-	modules/scicos/src/ocaml/Makefile
+	modules/scicos/src/modelica_compiler/Makefile
 SOURCES =
 DIST_SOURCES =
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -121,9 +121,6 @@ MKDIR_P = @MKDIR_P@
 NM = @NM@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
-OCAMLC = @OCAMLC@
-OCAMLDEP = @OCAMLDEP@
-OCAMLOPT = @OCAMLOPT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -142,7 +139,8 @@ TERMCAP_LIB = @TERMCAP_LIB@
 TK_INC_PATH = @TK_INC_PATH@
 VERSION = @VERSION@
 WITH = @WITH@
-WITH_OCAML = @WITH_OCAML@
+OMC_TARGET = @OMC_TARGET@
+OMC_INSTALL_TARGET = @OMC_INSTALL_TARGET@
 XMKMF = @XMKMF@
 XML_CONFIG = @XML_CONFIG@
 XML_FLAGS = @XML_FLAGS@
@@ -261,8 +259,6 @@ $(top_srcdir)/modules/core/includes/machine.h.in: @MAINTAINER_MODE_TRUE@ $(am__c
 distclean-hdr:
 	-rm -f modules/core/includes/machine.h modules/core/includes/stamp-h1
 libs/f2c/Makefile: $(top_builddir)/config.status $(top_srcdir)/libs/f2c/Makefile.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
-modules/scicos/src/ocaml/Makefile: $(top_builddir)/config.status $(top_srcdir)/modules/scicos/src/ocaml/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 
 mostlyclean-libtool:

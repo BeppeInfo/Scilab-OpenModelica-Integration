@@ -58,16 +58,15 @@ function [model,ok]=build_modelica_block(blklstm,corinvm,cmmat,NiM,NoM,NvM,scs_m
 
     //generating XML and Flat_Model
     //## compile modelica files
-    [ok,name,nipar,nrpar,nopar,nz,nx,nx_der,nx_ns,nin,nout,nm,ng,dep_u]=compile_modelica(path+name+".mo",Mblocks);
+    [ok,name,guid,nipar,nrpar,nopar,nz,nx,nx_der,nx_ns,nin,nout,nm,ng,dep_u]=compile_modelica(path+name+".mo",Mblocks);
 
     if ~ok then return,end
 
-    //nx is the state dimension
-    //ng is the number of surfaces
-    //name1 of the model+flat
-
+    mprintf("--------------------------------------------\n");
+    
     //build model data structure of the block equivalent to the implicit part
     model=scicos_model(sim=list(name,10004),..
+    label=name,uid=guid,..
     in=ones(nin,1),out=ones(nout,1),..
     state=zeros(nx*2,1),..
     dstate=zeros(nz,1),..

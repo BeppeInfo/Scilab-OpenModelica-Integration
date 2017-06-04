@@ -27,7 +27,7 @@ function r = with_modelica_compiler()
     end
 
     // check if modelica compiler exists in current $PATH
-    r = ~isempty(getmodelicacpath());
+    r = ~isempty(getomcpath());
 
 endfunction
 

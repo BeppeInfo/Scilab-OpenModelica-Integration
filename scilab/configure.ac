@@ -803,7 +803,7 @@ AC_ARG_WITH(xcos,
     AS_HELP_STRING([--without-xcos], [Disable Xcos]))
 
 AC_ARG_WITH(modelica,
-    AS_HELP_STRING([--without-modelica],[Disable the OCaml module (modelica)]))
+    AS_HELP_STRING([--without-modelica],[Disable OpenModelica compiler]))
 
 
 if test "$with_gui" = no; then
@@ -811,6 +811,8 @@ if test "$with_gui" = no; then
 fi
 
 XCOS_ENABLE=no
+OMC_TARGET=""
+OMC_INSTALL_TARGET=""
 
 if test "$with_xcos" != no; then
    AC_DEFINE([WITH_XCOS], [], [with XCos])
@@ -827,19 +829,32 @@ if test "$with_xcos" != no; then
 
 
 #################
-## ocaml which only called when using Xcos
+## modelica compiler which only called when using Xcos
 #################
 
    if test "$with_modelica" != no; then
-      AC_CHECK_PROG_OCAML()
+      CPPFLAGS="$CPPFLAGS -DH5_USE_18_API"
+      OMC_TARGET="modelica-compiler"
+      OMC_INSTALL_TARGET="install-modelica-compiler"
+      AC_CONFIG_FILES([
+      modules/scicos/src/modelica_compiler/Makefile
+     ])
+      AC_CONFIG_SUBDIRS([modules/scicos/src/modelica_compiler])
+      USE_METIS=0
+      WITH_UMFPACK=no
+      OMBUILDDIR="../../"
+      AC_SUBST(USE_METIS)
+      AC_SUBST(WITH_UMFPACK)
+      AC_SUBST(OMBUILDDIR)
    fi
    XCOS_ENABLE=yes
 
 fi
 
 AC_SUBST(XCOS_ENABLE)
+AC_SUBST(OMC_TARGET)
+AC_SUBST(OMC_INSTALL_TARGET)
 
-AM_CONDITIONAL(OCAML, test "$with_modelica" != no -a "$OCAMLC" != no -a "$OCAMLOPT" != no)
 AM_CONDITIONAL(XCOS, test "$XCOS_ENABLE" != no)
 
 ###########################
@@ -2200,14 +2215,6 @@ if test $XCOS_ENABLE = yes; then
    echo "Xcos enable"
    echo "Build modelica compiler (--without-modelica) ....... = $with_modelica"
    echo ""
-   if test "$with_modelica" != no -a "$OCAMLC" != no -a "$OCAMLOPT" != no; then
-     echo "Ocaml Configuration (for Modelica compiler):"
-     echo "  OCAMLC ............. = $OCAMLC"
-     echo "  OCAMLOPT ........... = $OCAMLOPT"
-     echo "  OCAMLDEP ........... = $OCAMLDEP"
-   else
-     echo "Will not build Modelica compiler"
-   fi
 else
    echo "Not using Xcos"
 fi
